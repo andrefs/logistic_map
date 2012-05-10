@@ -1,9 +1,9 @@
 //////////////////////////////////////////////////////////////////////////////////
-//				Logistic Map v1.7.c				//
+//				Logistic Map v1.8.c				//
 //				2007.12.13					//
 //		Desenha cada conjunto de pontos para cada r de uma vez,		//
-//		nao permite redimensionamento da janela, diferentes funçoes,	// 
-//		Nao inclui eixos,leitura de ficheiro ou zoom			//
+//		permite redimensionamento da janela, diferentes funçoes,	// 
+//		Inclui eixos, nao inclui leitura de ficheiro ou zoom		//
 //////////////////////////////////////////////////////////////////////////////////
 #include <GL/glut.h>
 #include <GL/gl.h>
@@ -32,9 +32,6 @@ double 		x0 = 0.5;
 double 		r = 2.3;
 double 		x = 0.5;
 
-
-
-
 ///////////////////////////////////////////////////////////
 //funcoes calc
 double calc_0(){	
@@ -55,12 +52,12 @@ double (*calc[10])() = {calc_0,calc_1};
 int set_glbvars_0(){
 	i = 0;
 	jumps = 1000;
-	offset = 50000;
+	offset = 100000;
 	r_min = 2.3;
 	r_max = 4.0;
 	x_min = 0.0;
 	x_max = 1.0;
-	num_pontos = 200;
+	num_pontos = 500;
 	x0 = 0.5;
 	r = 2.3;
 	x = 0.5;	
@@ -84,10 +81,34 @@ return 1;
 
 int (*set_glbvars[10])() = {set_glbvars_0,set_glbvars_1};
 
+int draw_eixos(){
+	glColor3f(1.0f, 0.0f, 0.0f);
+	glBegin(GL_LINES);
+	//Eixo XX
+	glVertex2f(r_min-0.05,x_min);
+	glVertex2f(r_max+0.003,x_min);
+	//Eixo YY
+	glVertex2f(r_min,x_min-0.05);
+	glVertex2f(r_min,x_max);
+	glEnd();
+
+	glBegin(GL_TRIANGLES);
+	glVertex2f(r_max, x_min + 0.01);
+	glVertex2f(r_max, x_min -0.01);
+	glVertex2f(r_max+ 0.02, x_min);
+	
+	glColor3f(1.0f, .0f, 0.0f);
+        glVertex2f(r_min - 0.01,x_max);
+	glVertex2f(r_min +0.01, x_max);
+	glVertex2f(r_min, x_max +0.02);
+        glEnd();
+	glFlush();
+return 1;
+}
+
  //////////////////////////////////////////////////////////
 // Called to draw scene
-void RrmaxerScene(void){
-	// Clear the window with current clearing color
+void RenderScene(void){
 	while (i < (offset + num_pontos)){
 		x = calc[n]();
 		// Set current drawing color to red
@@ -112,13 +133,14 @@ void TimerFunction(int value){
 		x = calc[n]();
 		i++;
 	}
+	draw_eixos();
 	// Redraw the scene with new coordinates
 	glutPostRedisplay();
 	glutTimerFunc(1,TimerFunction, 1);
 }
 
  //////////////////////////////////////////////////////////
-// Set up the rrmaxering state
+// Set up the Rendering state
 void SetupRC(void)
 	{
 	// Set clear color to blue
@@ -129,6 +151,8 @@ void SetupRC(void)
 ///////////////////////////////////////////////////////////
 // Called by GLUT library when the window has chanaged size
 void ChangeSize(GLsizei w, GLsizei h){	
+	set_glbvars[n]();
+	glClear(GL_COLOR_BUFFER_BIT);
 	if (h == 0) h = 1;
 	glViewport(0, 0, w, h);
 	glMatrixMode(GL_PROJECTION);
@@ -146,7 +170,6 @@ int verify_args(int argc, char *argv[]){
 	}
 	else {
 		sscanf(argv[1],"%d",&n);
-		printf("%d\n",n);
 		if ((n<0)||(n>=10)) return 0;
 		else return 1;
 	}
@@ -159,15 +182,16 @@ int main(int argc, char* argv[])
 {
 	if (!(verify_args(argc,argv))) return 0;
 	else {
-		set_glbvars[n]();	
+		set_glbvars[n]();
 		glutInit(&argc, argv);
 		glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
-		glutInitWindowSize(1483,864);
+		glutInitWindowSize(1383,864);
 		glutCreateWindow("Logistic Map");
-		glutDisplayFunc(RrmaxerScene);
+		glutDisplayFunc(RenderScene);
 		glutReshapeFunc(ChangeSize);
 		glutTimerFunc(1, TimerFunction, 1);
 		SetupRC();
+			
 		glutMainLoop();
 	}
 return 0;
