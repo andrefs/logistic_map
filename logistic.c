@@ -1,15 +1,16 @@
 //////////////////////////////////////////////////////////////////////////////////
-//				Logistic Map v1.98.c				//
-//				2007.12.14					//
+//				Logistic Map v2.01.c				//
+//				2007.12.16					//
 //		Desenha cada conjunto de pontos para cada r de uma vez,		//
 //		permite redimensionamento da janela, diferentes funçoes,	// 
 //		Inclui eixos a 100%, faz zoom direitinho, falta a numeracao	//
-//		nos eixos e arrumar o codigo					//
+//		nos eixos. Faz ouput das variaveis na consola			//
 //////////////////////////////////////////////////////////////////////////////////
 #include <GL/glut.h>
 #include <GL/gl.h>
 #include <stdio.h>
 #include <math.h>
+#include <stdlib.h>
 
 #define BORDER 20
 
@@ -38,8 +39,19 @@ double		margem_r;
 double		margem_x;
 
 
+void output(GLfloat x, GLfloat y, char *text)
+{
+    char *p;
+    
+    glPushMatrix();
+    glTranslatef(x, y, 0);
+    for (p = text; *p; p++)
+        glutStrokeCharacter(GLUT_STROKE_ROMAN, *p);
+    glPopMatrix();
+}
+
 ///////////////////////////////////////////////////////////
-//funcoes calc
+//Funcoes Calc
 double calc_0(){	
 	return (r*x*(1-x));
 }
@@ -48,11 +60,14 @@ double calc_1(){
 	return (r * sin(x) * (1 - sin(x)));
 }	
 
-double (*calc[10])() = {calc_0,calc_1};
+double calc_2(){
+	return (r*pow(x,3)*(1-pow(x,3)));
+}
+
+double (*calc[10])() = {calc_0,calc_1,calc_2};
 
 ///////////////////////////////////////////////////////////
-//funcoes set_glbvars
-
+//Funcoes set_glbvars (inicializam as variáveis com os melhores valores para cada função calc
 int set_glbvars_0(){
 	i = 0;
 	offset = 100000;
@@ -95,7 +110,42 @@ int set_glbvars_1(){
 return 1;
 }
 
-int (*set_glbvars[10])() = {set_glbvars_0,set_glbvars_1};
+int set_glbvars_2(){
+	i = 0;
+	offset = 50000;
+	r_min = 0;
+	r_max = 20.0;
+	x_min = 0.0;
+	x_max = 20;
+	num_pontos = 200;
+	x0 = 0.5;
+	r = r_min;
+	x = x0;
+	mouse_presses = 0;
+	jumps = (int) (wgl+100)/(r_max-r_min+2*margem_r);
+
+	razao_r = (r_max-r_min)/(wgl-2*BORDER);
+	razao_x = (x_max-x_min)/(hgl-2*BORDER);
+	margem_r = BORDER*razao_r;
+	margem_x = BORDER*razao_x;
+return 1;
+}
+
+int (*set_glbvars[10])() = {set_glbvars_0,set_glbvars_1,set_glbvars_2};
+
+//Funcao que imprime na consola as variaveis usadas para o desenho
+int print_vars(){
+	system("clear");
+	printf("r_min:\t\t%f\n",r_min);
+	printf("r_max:\t\t%f\n",r_max);
+	printf("x_min:\t\t%f\n",x_min);
+	printf("x_max:\t\t%f\n\n",x_max);
+	printf("offset:\t\t%ld\n",offset);
+	printf("num_pontos:\t%d\n\n",num_pontos);
+	printf("wgl:\t\t%d\n",wgl);
+	printf("hgl:\t\t%d\n",hgl);
+return 0;
+}
 
 ///////////////////////////////////////////////////////////
 //Funcão que desenha os eixos
@@ -128,13 +178,11 @@ return 1;
 }
 
  //////////////////////////////////////////////////////////
-// Called to draw scene
+// Funcão que desenha os pontos no monitor
 void RenderScene(void){
 	while (i < (offset + num_pontos)){
 		x = calc[n]();
-		// Set current drawing color to red
-		// 	    R	  G    B
-		glColor3f(0.0f, 0.0f, 0.0f);
+		glColor3f(1.0f, 1.0f, 1.0f);
 		glBegin(GL_POINTS);
 		if ((r>r_min)&&(r<r_max)&&(x>x_min)&&(x<x_max))
 			glVertex2f(r,x);
@@ -166,7 +214,7 @@ void TimerFunction(int value){
 void SetupRC(void)
 	{
 	// Set clear color to white
-	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 	}
 
@@ -175,6 +223,7 @@ void SetupRC(void)
 void ChangeSize(GLsizei w, GLsizei h){	
 	wgl = w; hgl = h;
 	set_glbvars[n]();
+	print_vars();
 	glClear(GL_COLOR_BUFFER_BIT);
 	if (h == 0) h = 1;
 	glViewport(0, 0, w, h);
@@ -184,7 +233,8 @@ void ChangeSize(GLsizei w, GLsizei h){
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 }
-
+//////////////////////////////////////////////////////////
+//Funcao que realiza o zoom
 int zoom(){
 	x = x0;
 	r = r_min;
@@ -193,7 +243,7 @@ int zoom(){
 	margem_r = BORDER*razao_r;
 	margem_x = BORDER*razao_x;
 	jumps = (int) (wgl+100)/(r_max-r_min+2*margem_r);
-	
+	print_vars();
 	glClear(GL_COLOR_BUFFER_BIT);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
@@ -221,17 +271,18 @@ return 1;
 void mouse(int button, int state, int r1, int x1){
 	double r2,x2,r3,x3;
 	double zoom_rtemp,zoom_xtemp;
+	
+	//se o botao direito for pressionado:
 	if (button==GLUT_RIGHT_BUTTON){
-		set_glbvars[n]();
-		glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
-		ChangeSize(wgl,hgl);
+		set_glbvars[n](); 		//reset às variaveis
+		glClear(GL_COLOR_BUFFER_BIT);	//limpar o ecra
+		ChangeSize(wgl,hgl);		//redesenhar
 	}
 	
 	if (button==GLUT_LEFT_BUTTON){
-		if (state == GLUT_DOWN){
-			if (mouse_presses==0){
-				zoom_r = ((r_max-r_min+2*margem_r)*r1/wgl)+r_min-margem_r;
+		if (state == GLUT_DOWN){	//se o botao esquerdo for pressionado:
+			if (mouse_presses==0){	//pela primeira vez
+				zoom_r = ((r_max-r_min+2*margem_r)*r1/wgl)+r_min-margem_r;		
 				zoom_x = ((x_max-x_min+2*margem_x)*(hgl-x1)/hgl)+x_min-margem_x; 
 				mouse_presses = 1;
 				r2 = ((r_max-r_min+2*margem_r)*(r1-1)/wgl)+r_min-margem_r;
@@ -241,7 +292,7 @@ void mouse(int button, int state, int r1, int x1){
 				glColor3f(0.1f,1.0f,0.1f);
 				glRectf(r2,x2,r3,x3);
 			}
-			else {
+			else {	//ou pela segunda
 				zoom_rtemp = ((r_max-r_min+2*margem_r)*r1/wgl)+r_min-margem_r;
 				zoom_xtemp = ((x_max-x_min+2*margem_x)*(hgl-x1)/hgl)+x_min-margem_x; 
 				r2 = ((r_max-r_min+2*margem_r)*(r1-1)/wgl)+r_min-margem_r;
@@ -269,13 +320,14 @@ void mouse(int button, int state, int r1, int x1){
 				mouse_presses = 2;
 			}
 		}
-		else if (mouse_presses==2) {	
+		else if (mouse_presses==2) {	//se o botao esquerdo for libertado
 			mouse_presses = 0;
 			zoom();
 		}				
 	}
 }
-
+////////////////////////////////////////////////////////////////////////////////
+//Funcao que verifica os argumentos passados à main()
 int verify_args(int argc, char *argv[]){
 	if (argc!=2){
 		printf("\n./logistic num_funcao\n");
@@ -283,7 +335,10 @@ int verify_args(int argc, char *argv[]){
 	}
 	else {
 		sscanf(argv[1],"%d",&n);
-		if ((n<0)||(n>=10)) return 0;
+		if ((n<0)||(n>=10)){
+			return 0;
+			printf("\n./logistic num_funcao\n");
+		}
 		else return 1;
 	}
 
