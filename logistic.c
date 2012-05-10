@@ -1,14 +1,17 @@
 //////////////////////////////////////////////////////////////////////////////////
-//				Logistic Map v1.96.c				//
-//				2007.12.13					//
+//				Logistic Map v1.97.c				//
+//				2007.12.14					//
 //		Desenha cada conjunto de pontos para cada r de uma vez,		//
 //		permite redimensionamento da janela, diferentes funçoes,	// 
-//		Inclui eixos, faz zoom mas tem eixos ranhosos			//
+//		Inclui eixos a 100%, faz zoom mas q ta 1 qito mal (maybe)	//
+//		e sem sinalizacao						//
 //////////////////////////////////////////////////////////////////////////////////
 #include <GL/glut.h>
 #include <GL/gl.h>
 #include <stdio.h>
 #include <math.h>
+
+#define BORDER 20
 
 ///////////////////////////////////////////////////////////
 //variaveis globais
@@ -29,6 +32,11 @@ int 		mouse_presses = 0;
 double		zoom_r;
 double		zoom_x;
 int 		jumps = 800;
+double 		razao_r;
+double		razao_x;
+double		margem_r;
+double		margem_x;
+
 
 ///////////////////////////////////////////////////////////
 //funcoes calc
@@ -38,7 +46,7 @@ double calc_0(){
 
 double calc_1(){
 	return (r * sin(x) * (1 - sin(x)));
-}
+}	
 
 double (*calc[10])() = {calc_0,calc_1};
 
@@ -57,13 +65,17 @@ int set_glbvars_0(){
 	r = 2.3;
 	x = 0.5;
 	mouse_presses = 0;
-	jumps = (int) (wgl+100)/(r_max-r_min+0.2);	
+	jumps = (int) (wgl+100)/(r_max-r_min+2*margem_r);
+
+	razao_r = (r_max-r_min)/(wgl-2*BORDER);
+	razao_x = (x_max-x_min)/(hgl-2*BORDER);
+	margem_r = BORDER*razao_r;
+	margem_x = BORDER*razao_x;
 return 1;
 }
 
 int set_glbvars_1(){
 	i = 0;
-	jumps = 250;
 	offset = 50000;
 	r_min = 2.3;
 	r_max = 20.0;
@@ -74,6 +86,12 @@ int set_glbvars_1(){
 	r = r_min;
 	x = x0;
 	mouse_presses = 0;
+	jumps = (int) (wgl+100)/(r_max-r_min+2*margem_r);
+
+	razao_r = (r_max-r_min)/(wgl-2*BORDER);
+	razao_x = (x_max-x_min)/(hgl-2*BORDER);
+	margem_r = BORDER*razao_r;
+	margem_x = BORDER*razao_x;
 return 1;
 }
 
@@ -87,22 +105,22 @@ int draw_eixos(){
 	glBegin(GL_LINES);
 
 	//Eixo RR
-	glVertex2f(r_min-0.05,x_min);
-	glVertex2f(r_max+0.003,x_min);
+	glVertex2f(r_min-margem_r/2,x_min);
+	glVertex2f(r_max+margem_r/3, x_min);
 	//Eixo XX
-	glVertex2f(r_min,x_min-0.05);
-	glVertex2f(r_min,x_max);
+	glVertex2f(r_min,x_min-margem_x/2);
+	glVertex2f(r_min,x_max+margem_x/3);
 	glEnd();
 	//Seta RR
 	glBegin(GL_TRIANGLES);
-	glVertex2f(r_max, x_min + 0.01);
-	glVertex2f(r_max, x_min -0.01);
-	glVertex2f(r_max+ 0.02, x_min);
+	glVertex2f(r_max, x_min + margem_x/3);
+	glVertex2f(r_max, x_min -margem_x/3);
+	glVertex2f(r_max+ 2*margem_r/3, x_min);
 	//Seta XX
 	glColor3f(1.0f, .0f, 0.0f);
-        glVertex2f(r_min - 0.01,x_max);
-	glVertex2f(r_min +0.01, x_max);
-	glVertex2f(r_min, x_max +0.02);
+        glVertex2f(r_min - margem_r/3,x_max);
+	glVertex2f(r_min + margem_r/3, x_max);
+	glVertex2f(r_min, x_max +2*margem_x/3);
 
         glEnd();
 	glFlush();
@@ -118,6 +136,7 @@ void RenderScene(void){
 		// 	    R	  G    B
 		glColor3f(0.0f, 0.0f, 0.0f);
 		glBegin(GL_POINTS);
+		if ((r>r_min)&&(r<r_max)&&(x>x_min)&&(x<x_max))
 			glVertex2f(r,x);
 		glEnd();		
 		i++;
@@ -162,7 +181,7 @@ void ChangeSize(GLsizei w, GLsizei h){
 	glViewport(0, 0, w, h);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	glOrtho (r_min-0.1 , r_max + 0.1  , x_min-0.1, x_max + 0.1 , 1.0, -1.0);
+	glOrtho (r_min-margem_r , r_max + margem_r  , x_min-margem_x, x_max + margem_x, 1.0, -1.0);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 }
@@ -208,11 +227,16 @@ void mouse(int button, int state, int r1, int x1){
 				
 				x = x0;
 				r = r_min;
-				jumps = (int) (wgl+100)/(r_max-r_min+0.2);
+				razao_r = (r_max-r_min)/(wgl-20);
+				razao_x = (x_max-x_min)/(hgl-20);
+				margem_r = BORDER*razao_r;
+				margem_x = BORDER*razao_x;
+				jumps = (int) (wgl+100)/(r_max-r_min+2*margem_r);
+				
 				glClear(GL_COLOR_BUFFER_BIT);
 				glMatrixMode(GL_PROJECTION);
 				glLoadIdentity();
-				glOrtho (r_min-0.1 , r_max + 0.1  , x_min-0.1, x_max + 0.1 , 1.0, -1.0);
+				glOrtho (r_min-margem_r , r_max + margem_r  , x_min-margem_x, x_max + margem_x, 1.0, -1.0);
 				glMatrixMode(GL_MODELVIEW);
 			}
 	}
