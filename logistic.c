@@ -1,21 +1,14 @@
 //////////////////////////////////////////////////////////////////////////////////
-//				Logistic Map v1.8.c				//
+//				Logistic Map v1.95.c				//
 //				2007.12.13					//
 //		Desenha cada conjunto de pontos para cada r de uma vez,		//
 //		permite redimensionamento da janela, diferentes funçoes,	// 
-//		Inclui eixos, nao inclui leitura de ficheiro ou zoom		//
+//		Inclui eixos, faz uma espécie de zoom				//
 //////////////////////////////////////////////////////////////////////////////////
 #include <GL/glut.h>
 #include <GL/gl.h>
 #include <stdio.h>
 #include <math.h>
-
-#define JUMPS	1000
-#define OFFSET	50000
-#define rmin	2.3
-#define rmax	4.0
-#define NUM_PONTOS 200
-#define X0 0.5
 
 ///////////////////////////////////////////////////////////
 //variaveis globais
@@ -31,6 +24,11 @@ int 		num_pontos = 200;
 double 		x0 = 0.5;
 double 		r = 2.3;
 double 		x = 0.5;
+int 		wgl = 1434;
+int 		hgl = 852;
+int 		mouse_presses = 0;
+double		zoom_r;
+double		zoom_x;
 
 ///////////////////////////////////////////////////////////
 //funcoes calc
@@ -43,8 +41,6 @@ double calc_1(){
 }
 
 double (*calc[10])() = {calc_0,calc_1};
-
-
 
 ///////////////////////////////////////////////////////////
 //funcoes set_glbvars
@@ -60,7 +56,8 @@ int set_glbvars_0(){
 	num_pontos = 500;
 	x0 = 0.5;
 	r = 2.3;
-	x = 0.5;	
+	x = 0.5;
+	mouse_presses = 0;	
 return 1;
 }
 
@@ -76,31 +73,37 @@ int set_glbvars_1(){
 	x0 = 0.5;
 	r = r_min;
 	x = x0;
+	mouse_presses = 0;
 return 1;
 }
 
 int (*set_glbvars[10])() = {set_glbvars_0,set_glbvars_1};
 
+///////////////////////////////////////////////////////////
+//Funcão que desenha os eixos
 int draw_eixos(){
+	//Cor vermelho
 	glColor3f(1.0f, 0.0f, 0.0f);
 	glBegin(GL_LINES);
-	//Eixo XX
+
+	//Eixo RR
 	glVertex2f(r_min-0.05,x_min);
 	glVertex2f(r_max+0.003,x_min);
-	//Eixo YY
+	//Eixo XX
 	glVertex2f(r_min,x_min-0.05);
 	glVertex2f(r_min,x_max);
 	glEnd();
-
+	//Seta RR
 	glBegin(GL_TRIANGLES);
 	glVertex2f(r_max, x_min + 0.01);
 	glVertex2f(r_max, x_min -0.01);
 	glVertex2f(r_max+ 0.02, x_min);
-	
+	//Seta XX
 	glColor3f(1.0f, .0f, 0.0f);
         glVertex2f(r_min - 0.01,x_max);
 	glVertex2f(r_min +0.01, x_max);
 	glVertex2f(r_min, x_max +0.02);
+
         glEnd();
 	glFlush();
 return 1;
@@ -133,17 +136,18 @@ void TimerFunction(int value){
 		x = calc[n]();
 		i++;
 	}
-	draw_eixos();
 	// Redraw the scene with new coordinates
 	glutPostRedisplay();
-	glutTimerFunc(1,TimerFunction, 1);
+	draw_eixos();
+	//if (r<r_max)
+		glutTimerFunc(1,TimerFunction, 1);
 }
 
  //////////////////////////////////////////////////////////
 // Set up the Rendering state
 void SetupRC(void)
 	{
-	// Set clear color to blue
+	// Set clear color to white
 	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 	}
@@ -151,6 +155,7 @@ void SetupRC(void)
 ///////////////////////////////////////////////////////////
 // Called by GLUT library when the window has chanaged size
 void ChangeSize(GLsizei w, GLsizei h){	
+	wgl = w; hgl = h;
 	set_glbvars[n]();
 	glClear(GL_COLOR_BUFFER_BIT);
 	if (h == 0) h = 1;
@@ -162,6 +167,58 @@ void ChangeSize(GLsizei w, GLsizei h){
 	glLoadIdentity();
 }
 
+
+//////////////////////////////////////////////////////////
+//Funcao que trata do interface com o rato
+void mouse(int button, int state, int r1, int x1){
+	double zoom_rtemp,zoom_xtemp;
+	if (button==GLUT_RIGHT_BUTTON){
+		set_glbvars[n]();
+		glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT);
+		ChangeSize(wgl,hgl);
+	}
+	
+	if ((button==GLUT_LEFT_BUTTON)&&(state == GLUT_DOWN)){
+			if (mouse_presses == 0){
+				zoom_r = ((r_max-r_min+0.2)*r1/wgl)+r_min-0.1;
+				zoom_x = ((x_max-x_min+0.2)*(hgl-x1)/hgl)+x_min-0.1; 
+				mouse_presses = 1;
+			}
+			else if (mouse_presses == 1){
+				zoom_rtemp = ((r_max-r_min+0.2)*r1/wgl)+r_min-0.1;
+				zoom_xtemp = ((x_max-x_min+0.2)*(hgl-x1)/hgl)+x_min-0.1; 
+				if (zoom_rtemp<zoom_r){
+					r_min = zoom_rtemp;
+					r_max = zoom_r;
+				}
+				else {
+					r_min = zoom_r;
+					r_max = zoom_rtemp;
+				}
+				if (zoom_xtemp<zoom_x){
+					x_min = zoom_xtemp;
+					x_max = zoom_x;
+				}
+				else {
+					x_min = zoom_x;
+					x_max = zoom_xtemp;
+				}
+				mouse_presses = 0;
+				
+				x = x0;
+				r = r_min;
+				
+				glClear(GL_COLOR_BUFFER_BIT);
+				glMatrixMode(GL_PROJECTION);
+				glLoadIdentity();
+				glOrtho (r_min-0.1 , r_max + 0.1  , x_min-0.1, x_max + 0.1 , 1.0, -1.0);
+				glMatrixMode(GL_MODELVIEW);
+			}
+	}
+
+
+}
 
 int verify_args(int argc, char *argv[]){
 	if (argc!=2){
@@ -175,23 +232,21 @@ int verify_args(int argc, char *argv[]){
 	}
 
 }
-
 ///////////////////////////////////////////////////////////
 // Main program entry point
-int main(int argc, char* argv[])
-{
+int main(int argc, char* argv[]){
 	if (!(verify_args(argc,argv))) return 0;
 	else {
 		set_glbvars[n]();
 		glutInit(&argc, argv);
 		glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
-		glutInitWindowSize(1383,864);
+		glutInitWindowSize(wgl,hgl);
 		glutCreateWindow("Logistic Map");
 		glutDisplayFunc(RenderScene);
 		glutReshapeFunc(ChangeSize);
 		glutTimerFunc(1, TimerFunction, 1);
-		SetupRC();
-			
+		glutMouseFunc(mouse);
+		SetupRC();	
 		glutMainLoop();
 	}
 return 0;
