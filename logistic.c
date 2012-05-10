@@ -1,7 +1,7 @@
 //////////////////////////////////////////////////////////////////////////////////
-//				Logistic Map v1.5.c				//
+//				Logistic Map v1.6.c				//
 //				2007.12.13					//
-//		Desenha cada ponto de uma vez,					//
+//		Desenha cada conjunto de pontos para cada r de uma vez,		//
 //		permite redimensionamento da janela. Nao inclui eixos,leitura	//
 //		de ficheiro,zoom ou diferentes funçoes				//
 //////////////////////////////////////////////////////////////////////////////////
@@ -11,10 +11,10 @@
 #include <math.h>
 
 #define JUMPS	1000
-#define OFFSET	1000
+#define OFFSET	50000
 #define START	2.3
 #define END	4.0
-#define NUM_PONTOS 50
+#define NUM_PONTOS 200
 #define X0 0.5
 
 double r = START;
@@ -30,13 +30,16 @@ return 1;
 // Called to draw scene
 void RenderScene(void){
 	// Clear the window with current clearing color
-
-	// Set current drawing color to red
-	// 	    R	  G    B
-	glColor3f(0.0f, 0.0f, 0.0f);
+	while (i<OFFSET+NUM_PONTOS){
+		x = calc(r,x);
+		// Set current drawing color to red
+		// 	    R	  G    B
+		glColor3f(0.0f, 0.0f, 0.0f);
 		glBegin(GL_POINTS);
-		glVertex2f(r,x);
-		glEnd();	
+			glVertex2f(r,x);
+		glEnd();		
+		i++;
+	}
 	// Flush drawing commands and swap
 	glutSwapBuffers();
 }
@@ -45,17 +48,13 @@ void RenderScene(void){
 // Called by GLUT library when idle (window not being
 // resized or moved)
 void TimerFunction(int value){
-	if (i >= OFFSET+NUM_PONTOS){
-		i = 0;
-		x = X0;
-		r+= (1.0/JUMPS);
-	}
+	i = 0;
+	x = X0;
+	r+= (1.0/JUMPS);
 	while (i < OFFSET){
 		x = calc(r,x);
 		i++;
 	}
-	x = calc(r,x);
-	i++;		
 	// Redraw the scene with new coordinates
 	glutPostRedisplay();
 	glutTimerFunc(1,TimerFunction, 1);
