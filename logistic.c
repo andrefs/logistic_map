@@ -1,50 +1,82 @@
+//////////////////////////////////////////////////////////////////////////////////
+//				Logistic Map v1.1.c				//
+//				2007.12.08					//
+//		Desenha o mapa segundo a função mais geral, permite 		//
+//		redimensionamento da janela. Nao inclui eixos,leitura		//
+//		de ficheiro,zoom ou diferentes funçoes				//
+//////////////////////////////////////////////////////////////////////////////////		
+
 #include <GL/glut.h>
 #include <GL/gl.h>
-#include <unistd.h>
-#include "logistic.h"
+#include <stdio.h>
+#include <math.h>
 
-///////////////////////////////////////////////////////////
-// Invocação da área de desenho
-void RenderScene(void){
+#define JUMPS	5000
+#define OFFSET	50000
+#define START	2.3
+#define END	4.0
+#define NUM_PONTOS 50
+#define X0 0.5
+
+double calc(double r, double x){
+	return (r*x*(1-x));
+return 1;
+}
+
+int itera(int num_pontos, double x0, double r){
+	long int i;
+	double x;
+	x = calc(r, x0);
+	for (i=0;i<OFFSET;i++){
+		x = calc(r,x);
+	}
+	for (i=OFFSET; i<(OFFSET + num_pontos); i++){
+		x = calc(r,x);
+		glVertex2d((int)((r-START)*1390/(END-START)),x*790);
+	}
+return 1;
+}
+
+int draw_logistic(double start, double end, double jumps, int num_pontos, double x0){
 	double r;
+	for (r=start; r<end; r+=(1.0/jumps))
+		itera(num_pontos, x0, r);
+return 1;
+}
 
-	glClear(GL_COLOR_BUFFER_BIT);		// Limpa a janela com a cor actual
-	glColor3f(1.0f, 1.0f, 1.0f);		// Define a cor de desenho vermelho
+
+void RenderScene(void){
+	glClear(GL_COLOR_BUFFER_BIT);
+	glColor3f(0.0f, 0.0f, 0.0f);
 	glBegin(GL_POINTS);
-	for (r=2.3;r<4.0;r+=(1.0/REASON))
-		itera_v1_0(1000,0.5,r);
+		draw_logistic(START, END, JUMPS, NUM_PONTOS, X0);
 	glEnd();
-	glFlush();				// Manda executar todas as funçoes pendentes
+	glFlush();
 	}
-///////////////////////////////////////////////////////////
-// Especifica a cor a ser usada em glClear
+
 void SetupRC(void){
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 	}
-//////////////////////////////////////////////////////////
-// Called by GLUT library when the window has chanaged size
+
 void ChangeSize(GLsizei w, GLsizei h){
 	GLfloat aspectRatio;
 	
-	if(h == 0)				// Prevent a divide by zero
-		h = 1;
-	glViewport(0, 0, w, h);			// Set Viewport to window dimensions
-	glMatrixMode(GL_PROJECTION);		// Reset coordinate system
+	if (h == 0) h = 1;
+	glViewport(0, 0, w, h);
+	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	aspectRatio = (GLfloat)w / (GLfloat)h;	// Establish clipping volume (left, right, bottom, top, near, far)
-	if (w <= h)
-		glOrtho (-5.0, 1400.0, -5.0 / aspectRatio, 800.0 / aspectRatio, 1.0, -1.0);
-	else
-		glOrtho (-5.0 * aspectRatio, 1400.0 * aspectRatio, -5.0, 800.0, 1.0, -1.0);
+//	aspectRatio = (GLfloat)w / (GLfloat)h;
+	aspectRatio = (GLfloat)((END-START)*JUMPS) / (GLfloat)(790);
+	if (w < h) glOrtho (-5.0 , 1400.0 , -5.0, 800.0, 1.0, -1.0);
+	else glOrtho (-5.0, 1400.0, -5.0, 800.0, 1.0, -1.0);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	}
-///////////////////////////////////////////////////////////
-// Main program entry point
+
 int main(int argc, char* argv[])
 {
 	glutInit(&argc, argv);
-//	glutInitWindowSize(1433	, 864);			//Define tamanho da janela
+	//glutInitWindowSize(1433	, 864);			//Define tamanho da janela
 	glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);
 	glutCreateWindow("Logistic Map");
 	glutDisplayFunc(RenderScene);
