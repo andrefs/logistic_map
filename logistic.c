@@ -3,27 +3,27 @@
 #include <unistd.h>
 #include "logistic.h"
 
-#define max 5
-
 ///////////////////////////////////////////////////////////
 // Invocação da área de desenho
 void RenderScene(void){
 	int i;
+	double r;
+
 	glClear(GL_COLOR_BUFFER_BIT);		// Limpa a janela com a cor actual
-	glColor3f(1.0f, 0.0f, 0.0f);		// Define a cor de desenho vermelho
-		itera_v0_1(1000, 0.5);
+	glColor3f(1.0f, 1.0f, 1.0f);		// Define a cor de desenho vermelho
 	glBegin(GL_POINTS);
-	for (i=0;i<((int)(1.5*REASON));i++)
-		//for (j=0;j<10;j++)
-			glVertex2d(i,(xs[i])*REASON);
-	
+	for (r=2.3;r<4.0;r+=(1.0/REASON)){
+		itera_v0_2(1000,0.5,r);
+		for (i=0;i<10;i++)
+			glVertex2d((int)((r-2.3)*REASON),(xs[i])*REASON);
+	}
 	glEnd();
 	glFlush();				// Manda executar todas as funçoes pendentes
 	}
 ///////////////////////////////////////////////////////////
 // Especifica a cor a ser usada em glClear
 void SetupRC(void){
-	glClearColor(0.0f, 0.0f, 0.25f, 1.0f);
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	}
 //////////////////////////////////////////////////////////
 // Called by GLUT library when the window has chanaged size
@@ -37,9 +37,9 @@ void ChangeSize(GLsizei w, GLsizei h){
 	glLoadIdentity();
 	aspectRatio = (GLfloat)w / (GLfloat)h;	// Establish clipping volume (left, right, bottom, top, near, far)
 	if (w <= h)
-		glOrtho (-5.0, 500.0, -5.0 / aspectRatio, 500.0 / aspectRatio, 1.0, -1.0);
+		glOrtho (-5.0, 1400.0, -5.0 / aspectRatio, 800.0 / aspectRatio, 1.0, -1.0);
 	else
-		glOrtho (-5.0 * aspectRatio, 500.0 * aspectRatio, -5.0, 500.0, 1.0, -1.0);
+		glOrtho (-5.0 * aspectRatio, 1400.0 * aspectRatio, -5.0, 800.0, 1.0, -1.0);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	}
