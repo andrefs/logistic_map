@@ -1,7 +1,7 @@
 //////////////////////////////////////////////////////////////////////////////////
-//				Logistic Map v1.4.c				//
-//				2007.12.12					//
-//		Desenha cada ponto de uma vez, mas apaga os anteriores,		//
+//				Logistic Map v1.5.c				//
+//				2007.12.13					//
+//		Desenha cada ponto de uma vez,					//
 //		permite redimensionamento da janela. Nao inclui eixos,leitura	//
 //		de ficheiro,zoom ou diferentes funçoes				//
 //////////////////////////////////////////////////////////////////////////////////
@@ -10,8 +10,8 @@
 #include <stdio.h>
 #include <math.h>
 
-#define JUMPS	100
-#define OFFSET	500
+#define JUMPS	1000
+#define OFFSET	1000
 #define START	2.3
 #define END	4.0
 #define NUM_PONTOS 50
@@ -30,10 +30,10 @@ return 1;
 // Called to draw scene
 void RenderScene(void){
 	// Clear the window with current clearing color
-	glClear(GL_COLOR_BUFFER_BIT);
+
 	// Set current drawing color to red
 	// 	    R	  G    B
-	glColor3f(1.0f, 0.0f, 0.0f);
+	glColor3f(0.0f, 0.0f, 0.0f);
 		glBegin(GL_POINTS);
 		glVertex2f(r,x);
 		glEnd();	
@@ -66,7 +66,8 @@ void TimerFunction(int value){
 void SetupRC(void)
 	{
 	// Set clear color to blue
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT);
 	}
 
 ///////////////////////////////////////////////////////////
