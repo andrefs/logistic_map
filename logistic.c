@@ -6,17 +6,13 @@
 ///////////////////////////////////////////////////////////
 // Invocação da área de desenho
 void RenderScene(void){
-	int i;
 	double r;
 
 	glClear(GL_COLOR_BUFFER_BIT);		// Limpa a janela com a cor actual
 	glColor3f(1.0f, 1.0f, 1.0f);		// Define a cor de desenho vermelho
 	glBegin(GL_POINTS);
-	for (r=2.3;r<4.0;r+=(1.0/REASON)){
-		itera_v0_2(1000,0.5,r);
-		for (i=0;i<10;i++)
-			glVertex2d((int)((r-2.3)*REASON),(xs[i])*REASON);
-	}
+	for (r=2.3;r<4.0;r+=(1.0/REASON))
+		itera_v1_0(1000,0.5,r);
 	glEnd();
 	glFlush();				// Manda executar todas as funçoes pendentes
 	}
@@ -48,9 +44,9 @@ void ChangeSize(GLsizei w, GLsizei h){
 int main(int argc, char* argv[])
 {
 	glutInit(&argc, argv);
-	glutInitWindowSize(1433	, 864);			//Define tamanho da janela
+//	glutInitWindowSize(1433	, 864);			//Define tamanho da janela
 	glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);
-	glutCreateWindow("GLRect");
+	glutCreateWindow("Logistic Map");
 	glutDisplayFunc(RenderScene);
 	glutReshapeFunc(ChangeSize);
 	SetupRC();
