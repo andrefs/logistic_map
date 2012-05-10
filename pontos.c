@@ -1,6 +1,6 @@
 #include <GL/glut.h>
 #include <GL/gl.h>
-#include "logistic2.c"
+#include "logistic.c"
 
 
 ///////////////////////////////////////////////////////////
