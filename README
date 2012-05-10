@@ -1,0 +1,46 @@
+Packages needed (Ubuntu):
+	freeglut3
+	freeglut3-dev
+	glutg3
+	libglut3
+	libglut3-dev
+	libxmu-dev
+	libxmu-headers
+	libxmu6
+	libxmuu-dev
+	libxmuu1 
+
+Run with ./logistic N, where N is the test case number (1<=N<=3)
+
+More information (PT):
+
+
+-------------------------------------
+Bibliotecas etc:
+	- Têm que ter instalados os pacotes freeglut3, freeglut3-dev, glutg3, libglut3, libglut3-dev, libxmu-dev, libxmu-headers, libxmu6, libxmuu-dev, libxmuu1  (se calhar não precisam destes todos, eu fui instalando até conseguir compilar :P )
+	- Existe uma makefile que ja compila com tudo direitinho, usem-na
+	- O programa executa-se com ./logistic n  em que n é um valor inteiro entre 1 e 3 (porque eu so defini 3 casos de teste)
+	- Fundamentos teóricos:
+	- Basicamente estes desenhos fazem-se partindo de uma função, de um valor inicial, e de um factor r, e aplicando a funcao recursivamente. O que se verifica é que ao fim de muitas iterações a função começa a tender para determinados valores (às vezes para um valores específico, outras vezes dois valores, e por ai fora), dependendo do valor de r.
+	- Os desenhos mostram, para cada valor de x, para quantos valores diferentes a função tende ao fim de muitas iterações (quanto mais iterações - offset - e maior o num_pontos, mais preciso fica o mapa, mais demora mais tempo a executar)
+
+-------------------------------------
+Acerca do funcionamento do programa:
+	- Existem 3 funções (set_glbvars_1,2 e 3 - eu so defini 3, voces podem definir mais) definidas que o que fazem é atribuir os melhores valores às variáveis globais para diferentes casos de teste (tipo número de iterações, largura/altura da janela, etc).
+	- Estas funções são depois inseridas num array de funções set_glbvars[10].Quando a main é chamada, é executada uma função verify_args() que verifica se o argumento n passado é válido.
+	- Depois na main, é executada a função set_glbvars[n]() para as variáveis globais ficarem com os melhores valores.
+
+-------------------------------------
+Variaveis globais mais importantes:
+	- offset - numero de vezes que a funçao é iterada antes de desenhar pontos
+	- r_min, r_max - acho que sao os valores minimos e máximos de r representados na janela
+	- x_min, x_max - a mesma coisa para o x
+	- num_pontos - número de pontos a calcular para cada valor de x
+	- x0 - valor de partida para x
+	- razao e margem - sao variaveis para a funcao de zoom, ja nem sei bem explicar isto
+
+-------------------------------------
+Interface:
+	- Corram o programa, deixem-no desenhar o mapa e depois é possivel fazer zoom - clicando com o botao esqerdo marcam um ponto no mapa que será o canto superior esqerdo do novo mapa, voltam a clicar e fica definido o canto inferior direito.
+	- Podem fazer zoom algumas vezes seguidas (3 ou assim, não abusem porque se bem me lembro aquilo pode crashar se zoomarem mt)
+	- para fazer zoom out, botao direito
