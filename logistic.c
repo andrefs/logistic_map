@@ -1,10 +1,10 @@
 //////////////////////////////////////////////////////////////////////////////////
-//				Logistic Map v1.97.c				//
+//				Logistic Map v1.98.c				//
 //				2007.12.14					//
 //		Desenha cada conjunto de pontos para cada r de uma vez,		//
 //		permite redimensionamento da janela, diferentes funçoes,	// 
-//		Inclui eixos a 100%, faz zoom mas q ta 1 qito mal (maybe)	//
-//		e sem sinalizacao						//
+//		Inclui eixos a 100%, faz zoom direitinho, falta a numeracao	//
+//		nos eixos e arrumar o codigo					//
 //////////////////////////////////////////////////////////////////////////////////
 #include <GL/glut.h>
 #include <GL/gl.h>
@@ -158,8 +158,7 @@ void TimerFunction(int value){
 	// Redraw the scene with new coordinates
 	glutPostRedisplay();
 	draw_eixos();
-	//if (r<r_max)
-		glutTimerFunc(1,TimerFunction, 1);
+	glutTimerFunc(1,TimerFunction, 1);
 }
 
  //////////////////////////////////////////////////////////
@@ -186,10 +185,41 @@ void ChangeSize(GLsizei w, GLsizei h){
 	glLoadIdentity();
 }
 
+int zoom(){
+	x = x0;
+	r = r_min;
+	razao_r = (r_max-r_min)/(wgl-20);
+	razao_x = (x_max-x_min)/(hgl-20);
+	margem_r = BORDER*razao_r;
+	margem_x = BORDER*razao_x;
+	jumps = (int) (wgl+100)/(r_max-r_min+2*margem_r);
+	
+	glClear(GL_COLOR_BUFFER_BIT);
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glOrtho (r_min-margem_r , r_max + margem_r  , x_min-margem_x, x_max + margem_x, 1.0, -1.0);
+	glMatrixMode(GL_MODELVIEW);
+return 1;
+}
+
+int draw_board(double a1,double b1,double a2,double b2){
+	glBegin(GL_LINES);
+	glVertex2d(a1,b1);
+	glVertex2d(a1,b2);
+	glVertex2d(a1,b1);
+	glVertex2d(a2,b1);
+	glVertex2d(a2,b2);
+	glVertex2d(a1,b2);
+	glVertex2d(a2,b2);
+	glVertex2d(a2,b1);
+	glEnd();
+return 1;
+}
 
 //////////////////////////////////////////////////////////
 //Funcao que trata do interface com o rato
 void mouse(int button, int state, int r1, int x1){
+	double r2,x2,r3,x3;
 	double zoom_rtemp,zoom_xtemp;
 	if (button==GLUT_RIGHT_BUTTON){
 		set_glbvars[n]();
@@ -198,50 +228,52 @@ void mouse(int button, int state, int r1, int x1){
 		ChangeSize(wgl,hgl);
 	}
 	
-	if ((button==GLUT_LEFT_BUTTON)&&(state == GLUT_DOWN)){
-			if (mouse_presses == 0){
-				zoom_r = ((r_max-r_min+0.2)*r1/wgl)+r_min-0.1;
-				zoom_x = ((x_max-x_min+0.2)*(hgl-x1)/hgl)+x_min-0.1; 
+	if (button==GLUT_LEFT_BUTTON){
+		if (state == GLUT_DOWN){
+			if (mouse_presses==0){
+				zoom_r = ((r_max-r_min+2*margem_r)*r1/wgl)+r_min-margem_r;
+				zoom_x = ((x_max-x_min+2*margem_x)*(hgl-x1)/hgl)+x_min-margem_x; 
 				mouse_presses = 1;
+				r2 = ((r_max-r_min+2*margem_r)*(r1-1)/wgl)+r_min-margem_r;
+				r3 = ((r_max-r_min+2*margem_r)*(r1+1)/wgl)+r_min-margem_r;
+				x2 = ((x_max-x_min+2*margem_x)*(hgl-(x1-1))/hgl)+x_min-margem_x;
+				x3 = ((x_max-x_min+2*margem_x)*(hgl-(x1+1))/hgl)+x_min-margem_x;
+				glColor3f(0.1f,1.0f,0.1f);
+				glRectf(r2,x2,r3,x3);
 			}
-			else if (mouse_presses == 1){
-				zoom_rtemp = ((r_max-r_min+0.2)*r1/wgl)+r_min-0.1;
-				zoom_xtemp = ((x_max-x_min+0.2)*(hgl-x1)/hgl)+x_min-0.1; 
-				if (zoom_rtemp<zoom_r){
-					r_min = zoom_rtemp;
-					r_max = zoom_r;
+			else {
+				zoom_rtemp = ((r_max-r_min+2*margem_r)*r1/wgl)+r_min-margem_r;
+				zoom_xtemp = ((x_max-x_min+2*margem_x)*(hgl-x1)/hgl)+x_min-margem_x; 
+				r2 = ((r_max-r_min+2*margem_r)*(r1-1)/wgl)+r_min-margem_r;
+				r3 = ((r_max-r_min+2*margem_r)*(r1+1)/wgl)+r_min-margem_r;
+				x2 = ((x_max-x_min+2*margem_x)*(hgl-(x1-1))/hgl)+x_min-margem_x;
+				x3 = ((x_max-x_min+2*margem_x)*(hgl-(x1+1))/hgl)+x_min-margem_x;
+				glColor3f(0.1f,1.0f,0.1f);
+				glRectf(r2,x2,r3,x3);
+				
+				if (zoom_rtemp<zoom_r){	r_min = zoom_rtemp;
+							r_max = zoom_r;
 				}
-				else {
-					r_min = zoom_r;
+				else {	r_min = zoom_r;
 					r_max = zoom_rtemp;
 				}
-				if (zoom_xtemp<zoom_x){
-					x_min = zoom_xtemp;
-					x_max = zoom_x;
+				if (zoom_xtemp<zoom_x){	x_min = zoom_xtemp;
+							x_max = zoom_x;
 				}
-				else {
-					x_min = zoom_x;
+				else {	x_min = zoom_x;
 					x_max = zoom_xtemp;
 				}
-				mouse_presses = 0;
-				
-				x = x0;
-				r = r_min;
-				razao_r = (r_max-r_min)/(wgl-20);
-				razao_x = (x_max-x_min)/(hgl-20);
-				margem_r = BORDER*razao_r;
-				margem_x = BORDER*razao_x;
-				jumps = (int) (wgl+100)/(r_max-r_min+2*margem_r);
-				
-				glClear(GL_COLOR_BUFFER_BIT);
-				glMatrixMode(GL_PROJECTION);
-				glLoadIdentity();
-				glOrtho (r_min-margem_r , r_max + margem_r  , x_min-margem_x, x_max + margem_x, 1.0, -1.0);
-				glMatrixMode(GL_MODELVIEW);
+				glColor3f(0.1f,1.0f,0.1f);
+				//glRectf(r_min,x_min,r_max,x_max);
+				draw_board(r_min,x_min,r_max,x_max);
+				mouse_presses = 2;
 			}
+		}
+		else if (mouse_presses==2) {	
+			mouse_presses = 0;
+			zoom();
+		}				
 	}
-
-
 }
 
 int verify_args(int argc, char *argv[]){
