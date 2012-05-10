@@ -1,9 +1,9 @@
 //////////////////////////////////////////////////////////////////////////////////
-//				Logistic Map v1.95.c				//
+//				Logistic Map v1.96.c				//
 //				2007.12.13					//
 //		Desenha cada conjunto de pontos para cada r de uma vez,		//
 //		permite redimensionamento da janela, diferentes funçoes,	// 
-//		Inclui eixos, faz uma espécie de zoom				//
+//		Inclui eixos, faz zoom mas tem eixos ranhosos			//
 //////////////////////////////////////////////////////////////////////////////////
 #include <GL/glut.h>
 #include <GL/gl.h>
@@ -14,7 +14,6 @@
 //variaveis globais
 int		n;
 int 		i=0;
-int 		jumps = 1000;
 long int 	offset = 50000;
 double		r_min = 2.3;
 double		r_max = 4.0;
@@ -29,6 +28,7 @@ int 		hgl = 852;
 int 		mouse_presses = 0;
 double		zoom_r;
 double		zoom_x;
+int 		jumps = 800;
 
 ///////////////////////////////////////////////////////////
 //funcoes calc
@@ -47,7 +47,6 @@ double (*calc[10])() = {calc_0,calc_1};
 
 int set_glbvars_0(){
 	i = 0;
-	jumps = 1000;
 	offset = 100000;
 	r_min = 2.3;
 	r_max = 4.0;
@@ -57,7 +56,8 @@ int set_glbvars_0(){
 	x0 = 0.5;
 	r = 2.3;
 	x = 0.5;
-	mouse_presses = 0;	
+	mouse_presses = 0;
+	jumps = (int) (wgl+100)/(r_max-r_min+0.2);	
 return 1;
 }
 
@@ -208,7 +208,7 @@ void mouse(int button, int state, int r1, int x1){
 				
 				x = x0;
 				r = r_min;
-				
+				jumps = (int) (wgl+100)/(r_max-r_min+0.2);
 				glClear(GL_COLOR_BUFFER_BIT);
 				glMatrixMode(GL_PROJECTION);
 				glLoadIdentity();
